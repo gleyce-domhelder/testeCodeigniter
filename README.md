@@ -1,5 +1,5 @@
 
-#erro:
+<h1>Erro:</h1>
 CRITICAL - 2024-04-27 00:22:09 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
 Main connection [SQLSRV]: [Microsoft][ODBC Driver 17 for SQL Server]Erro de protocolo no fluxo TDS SQLSTATE: HY000, code: 0
 [Microsoft][ODBC Driver 17 for SQL Server]O cliente n�o pode estabelecer conex�o devido a falha de pr�-logon SQLSTATE: 08001, code: 0
@@ -19,6 +19,7 @@ in SYSTEMPATH\Database\BaseConnection.php on line 457.
 
 <h1>Resolução: port=1433</h1>
 
+<h1>Erro:</h1>
 CRITICAL - 2024-04-27 00:25:47 --> [Caused by] CodeIgniter\Database\Exceptions\DatabaseException: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Nome de objeto 'Sesc.dbo.Usuário' inv�lido.
 in SYSTEMPATH\Database\SQLSRV\Connection.php on line 484.
  1 SYSTEMPATH\Database\BaseConnection.php(722): CodeIgniter\Database\SQLSRV\Connection->execute()
