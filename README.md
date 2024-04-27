@@ -1,4 +1,8 @@
-
+<h3>phpinfo() -> 
+ PHP Extension	20230831
+Zend Extension	420230831
+Zend Extension Build	API420230831,NTS,VS16
+PHP Extension Build	API20230831,NTS,VS16</h3>
 <h1>Erro:</h1>
 CRITICAL - 2024-04-27 00:22:09 --> CodeIgniter\Database\Exceptions\DatabaseException: Unable to connect to the database.
 Main connection [SQLSRV]: [Microsoft][ODBC Driver 17 for SQL Server]Erro de protocolo no fluxo TDS SQLSTATE: HY000, code: 0
