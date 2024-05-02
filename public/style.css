@@ -1,0 +1,63 @@
+/* Estilos para a barra de navegação */
+.navbar {
+    background-color: #333; /* Cor de fundo da barra de navegação */
+    padding: 10px 20px; /* Espaçamento interno */
+    color: #fff; /* Cor do texto */
+    display: flex;
+    justify-content: space-between; /* Alinhar os itens à esquerda e à direita */
+    align-items: center;
+}
+
+/* Estilos para o logo */
+.logo {
+    font-size: 1.5rem; /* Tamanho do texto do logo */
+    font-weight: bold;
+    text-decoration: none;
+    color: #fff; /* Cor do logo */
+}
+
+/* Estilos para o menu principal */
+.menu-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.menu-item {
+    margin-right: 20px; /* Espaçamento entre os itens do menu */
+}
+
+.menu-link {
+    text-decoration: none;
+    color: #fff; /* Cor do texto do link */
+    font-weight: bold;
+}
+
+/* Estilos para o submenu */
+.submenu-list {
+    display: none; /* Ocultar o submenu por padrão */
+    position: absolute;
+    background-color: #f9f9f9; /* Cor de fundo do submenu */
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Sombra */
+}
+
+.submenu-item {
+    margin-top: 10px; /* Espaçamento entre os itens do submenu */
+}
+
+.submenu-link {
+    color: #666; /* Cor do texto do submenu */
+    text-decoration: none;
+}
+
+/* Mostrar o submenu quando o item do menu é hover */
+.menu-item:hover .submenu-list {
+    display: block;
+}
+
+/* Estilizar o hover do submenu */
+.submenu-item:hover .submenu-link {
+    color: #000; /* Mudar a cor do texto ao passar o mouse sobre o submenu */
+}
