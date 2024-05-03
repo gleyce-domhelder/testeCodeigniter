@@ -1,15 +1,15 @@
 CREATE TABLE Perfil x Menu 
 ( 
- idUsuários INT,  
+ idUsuario INT,  
  idMenu INT,  
-  FOREIGN KEY(idUsuários) REFERENCES Usuários (idUsuários),
-FOREIGN KEY(idMenu1) REFERENCES Menu (idMenu)
+  FOREIGN KEY(idUsuario) REFERENCES  USUARIO (idUsuario),
+FOREIGN KEY(idMenu) REFERENCES Menu (idMenu)
 ); 
 
 CREATE TABLE Usuário x Perfil 
 ( 
- idUsuários INT,  
- idPerfil INT,  
-FOREIGN KEY(idUsuários) REFERENCES Usuários (idUsuários),
-DD FOREIGN KEY(idPerfil) REFERENCES Perfil (idPerfil)
+ idUsuario INT,  
+ idCategoria INT,  
+FOREIGN KEY(idUsuario) REFERENCES Usuários (idUsuario),
+FOREIGN KEY(idCategoria) REFERENCES Categoria (idCategoria)
 ); 
