@@ -1,3 +1,7 @@
+Access to XMLHttpRequest at 'http://localhost:8000/api/login' from origin 'http://localhost:3000' has been blocked by CORS policy: Cannot parse Access-Control-Allow-Headers response header field in preflight response.
+
+
+
 <h3>phpinfo() -> 
  PHP Extension	20230831
 Zend Extension	420230831
