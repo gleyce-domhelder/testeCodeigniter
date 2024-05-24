@@ -1,3 +1,6 @@
+
+https://domhelder-my.sharepoint.com/:w:/g/personal/d21565_academico_domhelder_edu_br/ESSGsFXBkU9JoxfR6NP7CDEBWbsu-qvKFcR_ZWCI6QEcDA?e=dbz7e9
+
 Access to XMLHttpRequest at 'http://localhost:8000/api/login' from origin 'http://localhost:3000' has been blocked by CORS policy: Cannot parse Access-Control-Allow-Headers response header field in preflight response.
 
 
