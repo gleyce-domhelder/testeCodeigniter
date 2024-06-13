@@ -1,0 +1,54 @@
+import React, { useState, useEffect } from "react";
+import { MultiSelect } from "react-multi-select-component";
+import axios from 'axios';
+
+const Example = () => {
+  const [options, setOptions] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Faz a requisição para obter as opções
+    axios.get('sua-url-de-requisicao')
+      .then(response => {
+        // Se o request for bem sucedido, atualiza o estado das opções
+        setOptions(response.data);
+      })
+      .catch(error => {
+        // Se houver um erro, você pode tratá-lo aqui
+        console.error('Erro ao buscar opções:', error);
+      });
+  }, []); // O array vazio como segundo argumento garante que o useEffect só seja chamado uma vez, similar ao componentDidMount
+
+  const handleSubmit = () => {
+    setIsLoading(true);
+    // Aqui você faria a requisição POST com os valores selecionados
+    axios.post('sua-url-de-requisicao', { selected })
+      .then(response => {
+        // Lida com a resposta da requisição, se necessário
+        console.log('Resposta da requisição POST:', response.data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        // Se houver um erro, você pode tratá-lo aqui
+        console.error('Erro ao enviar seleção:', error);
+        setIsLoading(false);
+      });
+  };
+
+  return (
+    <div>
+      <h1>Select Fruits</h1>
+      <pre>{JSON.stringify(selected)}</pre>
+      <MultiSelect
+        options={options}
+        value={selected}
+        onChange={setSelected}
+        labelledBy="Select"
+      />
+      <button onClick={handleSubmit} disabled={isLoading}>Enviar Seleção</button>
+    </div>
+  );
+};
+
+export default Example;
