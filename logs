@@ -1,0 +1,83 @@
+// File: app/Filters/LogAccessFilter.php
+namespace App\Filters;
+
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use CodeIgniter\Filters\FilterInterface;
+
+class LogAccessFilter implements FilterInterface
+{
+    protected $db;
+
+    public function __construct()
+    {
+        $this->db = \Config\Database::connect();
+    }
+
+    public function before(RequestInterface $request, $arguments = null)
+    {
+        // Nothing to do before request
+    }
+
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
+    {
+        $logData = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'ip_address' => $request->getIPAddress(),
+            'user_agent' => $request->getUserAgent()->getAgentString(),
+            'route' => $request->uri->getPath(),
+            'method' => $request->getMethod(),
+            'request_data' => json_encode($request->getRawInput()),
+            'response_status' => $response->getStatusCode(),
+        ];
+
+        if (in_array($request->getMethod(), ['put', 'patch', 'delete'])) {
+            // Supondo que você tenha um método para obter os dados antigos
+            $oldData = $this->getOldData($request);
+            $newData = $request->getRawInput();
+            $logData['old_data'] = json_encode($oldData);
+            $logData['new_data'] = json_encode($newData);
+        }
+
+        $this->logAccess($logData);
+    }
+
+    protected function getOldData(RequestInterface $request)
+    {
+        // Este é um exemplo simples. A lógica real dependerá da sua aplicação.
+        // Aqui você pode buscar os dados antigos do banco de dados.
+        return [
+            'example_field' => 'old_value'
+        ];
+    }
+
+    protected function logAccess($logData)
+    {
+        $builder = $this->db->table('api_logs');
+        $builder->insert($logData);
+    }
+}
+
+
+
+// File: app/Config/Filters.php
+namespace Config;
+
+use CodeIgniter\Config\BaseConfig;
+
+class Filters extends BaseConfig
+{
+    public $aliases = [
+        'logAccess' => \App\Filters\LogAccessFilter::class,
+    ];
+
+    public $globals = [
+        'before' => [],
+        'after' => [
+            'logAccess' => ['except' => ['login/*']],
+        ],
+    ];
+
+    public $methods = [];
+    public $filters = [];
+}
