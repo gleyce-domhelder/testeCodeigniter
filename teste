@@ -1,0 +1,157 @@
+//Menu
+<?php
+
+namespace App\Controllers;
+
+use App\Models\MenuModel;
+use App\Models\VW_Permissao;
+
+class Menu extends BaseController
+{
+    public function criarMenu($usuarioId)
+    {
+        // Obter as permissões do usuário
+        $menuModel = new MenuModel();
+
+        // Buscar os menus e permissões
+        $menu = $menuModel->findAll();
+        
+
+        // Inicializar o HTML do menu
+        $listMenu = '<nav class="navbar"><a href="#" class="logo">Meu Site</a><ul class="menu-list">';
+
+        // Iterar sobre os menus principais
+        foreach ($menu as $menus) {
+            // Verificar se há submenus associados a este menu principal
+            $submenus = $this->submenu($menus['ID'], $menu, $usuarioId);
+            if (!empty($submenus)) {
+                $listMenu .= "<li class='menu-item'><a class='menu-link' href='{$menus['CI_ROUTE_ID']}'>{$menus['MENU']}</a><ul>";
+                $listMenu .= $submenus;
+                $listMenu .= '</ul></li>';
+            }
+        }
+
+        // Fechar as tags HTML
+        $listMenu .= '</ul></nav>';
+
+        // Retornar o HTML do menu como JSON
+        return $this->response->setJSON(['menu' => $listMenu]);
+    }
+
+    public function submenu($menuId, $menu, $usuarioId)
+    {
+        // Inicializar o HTML dos submenus
+        $submenuHtml = '';
+        $vw_permissao = new VW_Permissao();
+
+        $view = $vw_permissao->view($usuarioId);
+        // Iterar sobre os menus para encontrar os submenus do menu atual
+        foreach ($menu as $menus) {
+            if ($menus['MENU_PAI_ID'] === $menuId) {
+                // Verificar se o usuário tem permissão para este submenu
+                $permissaoSubmenu = false;
+                foreach ($view as $views){
+                    if ($views['IDUSUARIO'] == $usuarioId && $views['MENUID'] === $menus['ID']) {
+                        $permissaoSubmenu = true;
+                    }
+                }
+
+                // Se o usuário tiver permissão, adicionar o submenu ao HTML dos submenus
+                if($permissaoSubmenu){
+                    $submenuHtml .= "<li class='submenu-item'><a class='submenu-link' href='{$menus['CI_ROUTE_ID']}'>{$menus['MENU']}</a></li>";
+                }
+            }
+        }
+
+        return $submenuHtml;
+    }
+}
+
+//Database
+INSERT INTO MODULOS (MENU_ID, MODULO, STATUS)
+VALUES
+    (5, 'Listagem de Clientes', 1),
+    (6, 'Formulário de Cadastro de Cliente', 1),
+    (7, 'Listagem de Usuários', 1),
+    (8, 'Formulário de Cadastro de Usuário', 1),
+    (9, 'Listagem de Perfis', 1),
+    (10, 'Formulário de Cadastro de Perfil', 1),
+    (11, 'Listagem de Categorias', 1),
+    (12, 'Formulário de Cadastro de Categoria', 1);
+
+SELECT
+    U.USUARIO_REDE,
+    U.ID AS IDUSUARIO,
+    U.STATUS AS STATUS_USUARIO,
+    P.ID AS IDPERFIL,
+    P.PERFIL AS NOME_PERFIL,
+    P.STATUS AS STATUS_PERFIL,
+    MO.ID AS IDMODULO,
+    MO.MODULO AS MODULO,
+    MO.STATUS AS STATUS_MODULO,
+    M.ID AS MENUID,
+	M.MENU_PAI_ID
+FROM
+    USUARIO U
+INNER JOIN
+    USUARIO_PERFIL UP ON U.ID = UP.USUARIO_ID
+INNER JOIN
+    PERFIL P ON UP.PERFIL_ID = P.ID
+INNER JOIN
+    PERFIL_MODULO PM ON P.ID = PM.PERFIL_ID
+INNER JOIN
+    MODULOS MO ON PM.MODULO_ID = MO.ID
+INNER JOIN
+    MENU M ON MO.MENU_ID = M.ID;
+
+
+INSERT INTO MENU (MENU_PAI_ID, MENU, ICON_CLASS, SLUG, ORDEM_EXIBICAO, STATUS)
+VALUES
+    (NULL, 'Clientes', 'fas fa-users', 'clientes', 1, 1),
+    (NULL, 'Usuários', 'fas fa-user', 'usuarios', 2, 1),
+    (NULL, 'Perfis', 'fas fa-id-card', 'perfis', 3, 1),
+    (NULL, 'Categorias', 'fas fa-tags', 'categorias', 4, 1),
+    (1, 'Listar Clientes', 'fas fa-list', 'listar-clientes', 1, 1),
+    (1, 'Adicionar Cliente', 'fas fa-plus', 'adicionar-cliente', 2, 1),
+    (2, 'Listar Usuários', 'fas fa-list', 'listar-usuarios', 1, 1),
+    (2, 'Adicionar Usuário', 'fas fa-plus', 'adicionar-usuario', 2, 1),
+    (3, 'Listar Perfis', 'fas fa-list', 'listar-perfis', 1, 1),
+    (3, 'Adicionar Perfil', 'fas fa-plus', 'adicionar-perfil', 2, 1),
+    (4, 'Listar Categorias', 'fas fa-list', 'listar-categorias', 1, 1),
+    (4, 'Adicionar Categoria', 'fas fa-plus', 'adicionar-categoria', 2, 1);
+
+//renderizar
+import React, { useEffect, useState } from 'react';
+
+function Menu() {
+    const [menuHtml, setMenuHtml] = useState('');
+
+    useEffect(() => {
+        fetch('http://localhost:8080/api/login')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao obter a estrutura do menu');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Extrai o HTML do menu do JSON retornado
+                const { menu } = data;
+                setMenuHtml(menu);
+            })
+            .catch(error => {
+                console.error('Erro ao obter dados do PHP:', error);
+            });
+    }, []);
+
+    return (
+        <div>
+            {/* Renderiza o HTML do menu */}
+            <div dangerouslySetInnerHTML={{ __html: menuHtml }} />
+        </div>
+    );
+}
+
+export default Menu;
+
+
