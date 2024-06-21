@@ -1,0 +1,286 @@
+// routes.jsx
+import React, { useEffect } from 'react';
+import { useRoutes } from 'react-router-dom';
+
+const addCssLink = (href) => {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = href;
+  document.head.appendChild(link);
+};
+
+const removeCssLink = (href) => {
+  const links = document.head.querySelectorAll('link[rel="stylesheet"]');
+  links.forEach((link) => {
+    if (link.href === href) {
+      link.remove();
+    }
+  });
+};
+
+const routes = [
+  {
+    path: '/',
+    element: <Home />,
+    css: [styles.home, libs.inputs],
+  },
+  {
+    path: '/login',
+    element: <Login />,
+    css: [styles.login],
+  },
+  // Add more routes as needed
+];
+
+const App = () => {
+  const element = useRoutes(routes);
+
+  useEffect(() => {
+    const currentRoute = routes.find((route) => route.path === window.location.pathname);
+    if (currentRoute) {
+      currentRoute.css.forEach((href) => addCssLink(href));
+    }
+    return () => {
+      // Remove all CSS links when the component is unmounted
+      const links = document.head.querySelectorAll('link[rel="stylesheet"]');
+      links.forEach((link) => link.remove());
+    };
+  }, [element]);
+
+  return element;
+};
+
+
+
+
+
+// routes.jsx
+import React from 'react';
+import { Route, Switch } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
+
+const LinkStyle = ({ href }) => (
+  <link rel="stylesheet" type="text/css" href={href} />
+);
+
+const Routes = () => {
+  return (
+    <Switch>
+      <Route path="/" exact>
+        <Helmet>
+          <LinkStyle href={styles.home} />
+          <LinkStyle href={libs.inputs} />
+        </Helmet>
+        <Home />
+      </Route>
+      <Route path="/login">
+        <Helmet>
+          <LinkStyle href={styles.login} />
+        </Helmet>
+        <Login />
+      </Route>
+      // Add more routes as needed
+    </Switch>
+  );
+};
+
+
+
+
+// routes.jsx
+import React from 'react';
+import { Route, Switch } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
+import { styles, libs } from './styles';
+
+const Routes = () => {
+  return (
+    <Switch>
+      <Route path="/" exact>
+        <Helmet>
+          <link rel="stylesheet" type="text/css" href={styles.home} />
+          <link rel="stylesheet" type="text/css" href={libs.inputs} />
+        </Helmet>
+        <Home />
+      </Route>
+      <Route path="/login">
+        <Helmet>
+          <link rel="stylesheet" type="text/css" href={styles.login} />
+        </Helmet>
+        <Login />
+      </Route>
+      // Add more routes as needed
+    </Switch>
+  );
+};
+
+
+
+// api.js
+export const api = {
+  get: (url, params = {}) => {
+    const queryString = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
+    const fetchUrl = `${url}?${queryString}`;
+    return fetch(fetchUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+   .then(response => response.json())
+   .catch(error => console.error('Error:', error));
+  },
+
+  post: (url, data = {}) => {
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+   .then(response => response.json())
+   .catch(error => console.error('Error:', error));
+  }
+};
+
+// MyComponent.js
+import React, { useState, useEffect } from 'react';
+
+const MyComponent = ({ api }) => {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    api.get('https://my-api.com/data')
+     .then(response => setData(response.data))
+     .catch(error => console.error('Error:', error));
+  }, []);
+
+  return (
+    <div>
+      <ul>
+        {data.map(item => (
+          <li key={item.id}>{item.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default MyComponent;
+
+
+// routes.js
+import { useRoutes } from 'react-router-dom';
+import { api } from './api';
+import MyComponent from './MyComponent';
+import AnotherComponent from './AnotherComponent';
+
+const routes = [
+  {
+    path: '/',
+    element: <MyComponent api={api} />,
+  },
+  {
+    path: '/another',
+    element: <AnotherComponent api={api} />,
+  },
+];
+
+export default function App() {
+  return useRoutes(routes);
+}
+
+
+import React from 'react';
+import { remove } from '../globalFunctions';
+
+const MyComponent = () => {
+  const handleRemove = () => {
+    remove('users')
+    .then(response => console.log(response))
+    .catch(error => console.error('Error:', error));
+  };
+
+  return (
+    <div>
+      <button onClick={handleRemove}>Remove Users</button>
+    </div>
+  );
+};
+
+
+// globalFunctions.js
+import { api } from './api';
+
+export const add = (url,...data) => {
+  return api.post(url, data);
+};
+
+export const edit = (url, id,...data) => {
+  return api.put(`${url}/${id}`, data);
+};
+
+export const remove = (slug) => {
+  return api.delete(`${slug}`);
+};
+
+
+import React from 'react';
+import { remove } from '../globalFunctions';
+
+const MyComponent = () => {
+  const handleRemove = () => {
+    remove('users')
+    .then(response => console.log(response))
+    .catch(error => console.error('Error:', error));
+  };
+
+  return (
+    <div>
+      <button onClick={handleRemove}>Remove Users</button>
+    </div>
+  );
+};
+
+// globalFunctions.js
+import { api } from './api';
+
+export const add = (slug, data) => {
+  return api.post(slug, data);
+};
+
+
+
+import React, { useState } from 'react';
+import { add } from '../globalFunctions';
+
+const MyComponent = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const data = { name, email };
+    add('users', data)
+      .then(response => console.log(response))
+      .catch(error => console.error('Error:', error));
+  };
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Name:
+          <input type="text" value={name} onChange={(event) => setName(event.target.value)} />
+        </label>
+        <label>
+          Email:
+          <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+        </label>
+        <button type="submit">Add User</button>
+      </form>
+    </div>
+  );
+};
