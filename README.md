@@ -1,4 +1,89 @@
 
+
+-> Filtrar Permissao 
+import React from 'react';
+import { BrowserRouter, Route, Routes, Link, Navigate } from 'react-router-dom';
+import Login from './login';
+import Menu from './menu';
+import Inicial from './paginaInicial';
+import Logout from './logout';
+import User from '../Pages/UserList';
+import Cadastrar from '../Pages/UserForm';
+import Table from '../Pages/table-datatable-basic';
+import Hora from '../Pages/table-hora';
+import Cadastro from '../Pages/cadastro';
+import Grafico from '../Pages/grafico';
+import { checkAccess } from './apiModule'; // Importa a função de verificação de acesso
+
+export default function ProtectedRoutes() {
+  // Função para verificar se o usuário tem acesso à rota
+  const canActivate = (path) => {
+    return checkAccess(path); // Utiliza a função de verificação de acesso
+  };
+
+  // Componente de rota protegida que verifica o acesso antes de renderizar
+  const ProtectedRoute = ({ path, element }) => {
+    return canActivate(path) ? (
+      <Route path={path} element={element} />
+    ) : (
+      <Navigate to="/login" />
+    );
+  };
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <ProtectedRoute path="/login" element={<Login />} />
+        <ProtectedRoute path="/cadastro" element={<Cadastro />} />
+        <ProtectedRoute path="/table" element={<Table />} />
+        <ProtectedRoute path="/hora" element={<Hora />} />
+        <ProtectedRoute path="/menu" element={<Menu />} />
+        <ProtectedRoute path="/" element={<Inicial />} />
+        <ProtectedRoute path="/grafico" element={<Grafico />} />
+        <ProtectedRoute path="/listar" element={<User />} />
+        <ProtectedRoute path="/logout" element={<Logout />} />
+        <ProtectedRoute path="/cadastrar" element={<Cadastrar />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+
+// Exemplo de módulo de serviço para verificação de acesso
+const checkAccess = (path) => {
+  // Simulação de lógica de verificação de acesso
+  const accessList = ['/login', '/cadastro', '/table', '/hora', '/', '/grafico', '/listar', '/logout', '/cadastrar'];
+
+  return accessList.includes(path);
+};
+
+export { checkAccess };
+
+
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { canActivate } from '../utils/auth'; // Importa a função de verificação de acesso
+
+const User = ({ userId }) => {
+  return (
+    <div>
+      <h2>Detalhes do Usuário</h2>
+      <p>UserID: {userId}</p>
+      <ul>
+        <li>Detalhe 1</li>
+        <li>Detalhe 2</li>
+        <li>Detalhe 3</li>
+      </ul>
+      {canActivate(`/editar/${userId}`) && (
+        <button><Link to={`/editar/${userId}`}>Editar Usuário</Link></button>
+      )}
+    </div>
+  );
+};
+
+export default User;
+
+
 ->Datatable Basic
 import React, { useEffect, useRef } from 'react';
 import $ from 'jquery';
