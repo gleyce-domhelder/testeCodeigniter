@@ -1,3 +1,215 @@
+-> CheckAll
+import React, { useState } from 'react';
+
+const CheckBoxTable = ({ name, items }) => {
+  const [selectedItems, setSelectedItems] = useState([]);
+
+  const toggleCheckbox = (itemId) => {
+    if (selectedItems.includes(itemId)) {
+      setSelectedItems(selectedItems.filter(item => item !== itemId));
+    } else {
+      setSelectedItems([...selectedItems, itemId]);
+    }
+  };
+
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th colSpan="2">{name}</th>
+          <th>
+            <input
+              type="checkbox"
+              onClick={() => {
+                const checkboxes = document.querySelectorAll(`#${name} input[type="checkbox"]`);
+                checkboxes.forEach(checkbox => checkbox.checked = !checkbox.checked);
+              }}
+            />
+            Selecione todos
+          </th>
+        </tr>
+      </thead>
+      <tbody id={name}>
+        {items.map(item => (
+          <tr key={item.id}>
+            <td>
+              <input
+                type="checkbox"
+                id={item.id}
+                onChange={() => toggleCheckbox(item.id)}
+                checked={selectedItems.includes(item.id)}
+              />
+            </td>
+            <td>{item.label}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+const Check = () => {
+  // Exemplo de dados para cada tabela
+  const perfis = [
+    { id: 'perfil1', label: 'Perfil 1' },
+    { id: 'perfil2', label: 'Perfil 2' },
+    { id: 'perfil3', label: 'Perfil 3' },
+  ];
+
+  const unidades = [
+    { id: 'unidade1', label: 'Unidade 1' },
+    { id: 'unidade2', label: 'Unidade 2' },
+    { id: 'unidade3', label: 'Unidade 3' },
+  ];
+
+  const usuarios = [
+    { id: 'usuario1', label: 'Usuário 1' },
+    { id: 'usuario2', label: 'Usuário 2' },
+    { id: 'usuario3', label: 'Usuário 3' },
+  ];
+
+  const categorias = [
+    { id: 'categoria1', label: 'Categoria 1' },
+    { id: 'categoria2', label: 'Categoria 2' },
+    { id: 'categoria3', label: 'Categoria 3' },
+  ];
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    alert('Enviado!');
+  };
+
+  const handleReset = () => {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(checkbox => checkbox.checked = false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <CheckBoxTable name="perfil" items={perfis} />
+      <CheckBoxTable name="unidade" items={unidades} />
+      <CheckBoxTable name="usuario" items={usuarios} />
+      <CheckBoxTable name="categoria" items={categorias} />
+
+      <button type="submit">Enviar</button>
+      <button type="button" onClick={handleReset}>Cancelar</button>
+    </form>
+  );
+};
+
+export default Check;
+
+
+
+-> Login
+
+// authService.js
+
+const apiUrl = 'http://localhost:3000/auth'; // Exemplo de URL do seu backend
+
+export const login = async (username, password) => {
+  try {
+    const response = await fetch(`${apiUrl}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Credenciais inválidas. Por favor, tente novamente.');
+    }
+
+    const data = await response.json();
+    localStorage.setItem('token', data.token);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const logout = () => {
+  localStorage.removeItem('token');
+};
+
+export const isLoggedIn = () => {
+  return !!localStorage.getItem('token');
+};
+
+
+// LoginComponent.js
+
+import React, { useState } from 'react';
+import { login } from './authService';
+
+const LoginComponent = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      await login(username, password);
+      // Redirecionar para a página principal ou outra página após o login
+      window.location.href = '/';
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label htmlFor="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  );
+};
+
+export default LoginComponent;
+
+
+// PrivateRoute.js
+
+import React from 'react';
+import { Route, Redirect } from 'react-router-dom';
+import { isLoggedIn } from './authService';
+
+const PrivateRoute = ({ component: Component, ...rest }) => {
+  return (
+    <Route
+      {...rest}
+      render={(props) =>
+        isLoggedIn() ? <Component {...props} /> : <Redirect to="/login" />
+      }
+    />
+  );
+};
+
+export default PrivateRoute;
 
 
 -> Filtrar Permissao 
