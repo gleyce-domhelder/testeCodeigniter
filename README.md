@@ -1,3 +1,35 @@
+  {access ? (
+                                                                    <a href="#" class="btn btn-primary shadow btn-xs sharp me-1">
+                                                                        <Editar rota={'/usuario/editar/' + 1} nome={'usuarios'} dado={usuario} />
+                                                                    </a>
+                                                                ) : (
+                                                                    <a href="#" class="btn btn-danger shadow btn-xs sharp">
+                                                                        <Excluir rota={'usuario/deletar/' + 1} id={usuario.ID} />
+                                                                    </a>
+                                                                )}
+ <Cadastro tipo={'Usuários'} href={'/cadastrar-usuario'} condicion={!AccessButton({ route: '/cadastrar-usuario' })} />
+ const access = AccessButton('/usuarios');
+    const AccessButton = ({ route }) => {
+        const access = ButtonAcess(route);
+        return access;
+    };
+
+    Cannot access 'AccessButton' before initialization
+ReferenceError: Cannot access 'AccessButton' before initialization
+    at ListarUsuario (http://localhost:3000/static/js/bundle.js:6603:18)
+    at renderWithHooks (http://localhost:3000/static/js/bundle.js:63648:22)
+    at mountIndeterminateComponent (http://localhost:3000/static/js/bundle.js:67619:17)
+    at beginWork (http://localhost:3000/static/js/bundle.js:68922:20)
+    at HTMLUnknownElement.callCallback (http://localhost:3000/static/js/bundle.js:53904:18)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/static/js/bundle.js:53948:20)
+    at invokeGuardedCallback (http://localhost:3000/static/js/bundle.js:54005:35)
+    at beginWork$1 (http://localhost:3000/static/js/bundle.js:73903:11)
+    at performUnitOfWork (http://localhost:3000/static/js/bundle.js:73151:16)
+    at workLoopSync (http://localhost:3000/static/js/bundle.js:73074:9)
+
+
+
+    
 -> CheckAll
 import React, { useState } from 'react';
 
