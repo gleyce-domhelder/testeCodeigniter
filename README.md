@@ -1,32 +1,177 @@
-  {access ? (
-                                                                    <a href="#" class="btn btn-primary shadow btn-xs sharp me-1">
-                                                                        <Editar rota={'/usuario/editar/' + 1} nome={'usuarios'} dado={usuario} />
-                                                                    </a>
-                                                                ) : (
-                                                                    <a href="#" class="btn btn-danger shadow btn-xs sharp">
-                                                                        <Excluir rota={'usuario/deletar/' + 1} id={usuario.ID} />
-                                                                    </a>
-                                                                )}
- <Cadastro tipo={'Usuários'} href={'/cadastrar-usuario'} condicion={!AccessButton({ route: '/cadastrar-usuario' })} />
- const access = AccessButton('/usuarios');
-    const AccessButton = ({ route }) => {
-        const access = ButtonAcess(route);
-        return access;
+  import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+ CadastrarPerfil({ api }) {
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        const perfil = formData.get('perfil');
+        const status = formData.get('status');
+        api.post('perfil/cadastrar', formData);
     };
 
-    Cannot access 'AccessButton' before initialization
-ReferenceError: Cannot access 'AccessButton' before initialization
-    at ListarUsuario (http://localhost:3000/static/js/bundle.js:6603:18)
-    at renderWithHooks (http://localhost:3000/static/js/bundle.js:63648:22)
-    at mountIndeterminateComponent (http://localhost:3000/static/js/bundle.js:67619:17)
-    at beginWork (http://localhost:3000/static/js/bundle.js:68922:20)
-    at HTMLUnknownElement.callCallback (http://localhost:3000/static/js/bundle.js:53904:18)
-    at Object.invokeGuardedCallbackDev (http://localhost:3000/static/js/bundle.js:53948:20)
-    at invokeGuardedCallback (http://localhost:3000/static/js/bundle.js:54005:35)
-    at beginWork$1 (http://localhost:3000/static/js/bundle.js:73903:11)
-    at performUnitOfWork (http://localhost:3000/static/js/bundle.js:73151:16)
-    at workLoopSync (http://localhost:3000/static/js/bundle.js:73074:9)
+    const [modulos, setModulos] = useState([]);
+    useEffect(() => {
+        api.get('api/listar-modulos')
+            .then(result => setModulos(result))
+            .catch(error => console.error('Error:', error));
+    }, []);
 
+    const [menus, setMenus] = useState([]);
+    useEffect(() => {
+        api.get('api/listar-menus')
+            .then(result => setMenus(result))
+            .catch(error => console.error('Error:', error));
+    }, []);
+
+    const [selectedItems, setSelectedItems] = useState([]);
+
+    const toggleCheckbox = (itemId) => {
+        if (selectedItems.includes(itemId)) {
+            setSelectedItems(selectedItems.filter(item => item !== itemId));
+        } else {
+            setSelectedItems([...selectedItems, itemId]);
+        }
+    };
+
+    return (
+        <div className="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title--large">Cadastrar Perfil</h4>
+                </div>
+                <div class="card-body">
+                    <form onSubmit={handleSubmit}>
+                        <div class="row">
+                            <div className="col-xl-6 mb-3">
+                                <label for="exampleFormControlInput1" className="form-label">Nome<span className="text-danger">*</span></label>
+                                <input type="text" class="form-control" name='perfil' id='perfil' />
+                            </div>
+                            <div className="col-xl-6 mb-3">
+                                <label className="form-label">Selecione um status:<span className="text-danger">*</span></label>
+                                <select className="default-select style-1 form-control" id='status' name='status'>
+                                    <option data-display="Select" disabled>Selecione uma opção</option>
+                                    <option id='permissaoValue' value={1}>Ativo</option>
+                                    <option id='permissaoValue' value={0}>Inativo</option>
+                                </select>
+                            </div>
+                            <div key='' className="col-xl-6 mb-3">
+                                <label className="form-label">Módulos:<span className="text-danger">*</span></label>
+                                <br />
+                                <input type="checkbox" id="check-all" onChange={(e) => checkAll(e.target)} />Selecione todos Módulos
+                            </div>
+
+                            <div className="row">
+                                {menus.map((menu) => (
+                                    <div class="col-xl-6 col-lg-12" id='form-modulos'>
+                                        <div class="card-header">
+                                            <h4 class="card-title" key={menu.ID}><input type="checkbox" name="" id="" onChange={(e) => check(e.target)} /> {menu.MENU}</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive active-projects style-1">
+                                                <table id="empoloyees-tblwrapper" class="table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th colSpan="2">{name}</th>
+                                                            <th>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    onClick={() => {
+                                                                        const checkboxes = document.querySelectorAll(`#${name} input[type="checkbox"]`);
+                                                                        checkboxes.forEach(checkbox => checkbox.checked = !checkbox.checked);
+                                                                    }}
+                                                                />
+                                                                Selecione todos
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id={name}>
+                                                        {items.map(item => (
+                                                            <tr key={item.id}>
+                                                                <td>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        id={item.id}
+                                                                        onChange={() => toggleCheckbox(item.id)}
+                                                                        checked={selectedItems.includes(item.id)}
+                                                                    />
+                                                                </td>
+                                                                <td>{item.label}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+
+                            </div>
+                            <div>
+                                <button class="btn btn-danger light ms-1">Cancel</button>
+                                <button class="btn btn-primary me-1" >Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                </div >
+            </div >
+
+        </div >
+    );
+}
+
+
+const CadastrarPerfil = () => {
+    // Exemplo de dados para cada tabela
+    const perfis = [
+      { id: 'perfil1', label: 'Perfil 1' },
+      { id: 'perfil2', label: 'Perfil 2' },
+      { id: 'perfil3', label: 'Perfil 3' },
+    ];
+  
+    const unidades = [
+      { id: 'unidade1', label: 'Unidade 1' },
+      { id: 'unidade2', label: 'Unidade 2' },
+      { id: 'unidade3', label: 'Unidade 3' },
+    ];
+  
+    const usuarios = [
+      { id: 'usuario1', label: 'Usuário 1' },
+      { id: 'usuario2', label: 'Usuário 2' },
+      { id: 'usuario3', label: 'Usuário 3' },
+    ];
+  
+    const categorias = [
+      { id: 'categoria1', label: 'Categoria 1' },
+      { id: 'categoria2', label: 'Categoria 2' },
+      { id: 'categoria3', label: 'Categoria 3' },
+    ];
+  
+    const handleSubmit = (event) => {
+      event.preventDefault();
+      alert('Enviado!');
+    };
+  
+    const handleReset = () => {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+    };
+  
+    return (
+      <form onSubmit={handleSubmit}>
+        <CheckBoxTable name="perfil" items={perfis} />
+        <CheckBoxTable name="unidade" items={unidades} />
+        <CheckBoxTable name="usuario" items={usuarios} />
+        <CheckBoxTable name="categoria" items={categorias} />
+  
+        <button type="submit">Enviar</button>
+        <button type="button" onClick={handleReset}>Cancelar</button>
+      </form>
+    );
+  };
+  
+  export default CadastrarPerfil;
 
 
     
