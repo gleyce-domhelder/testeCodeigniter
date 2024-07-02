@@ -1,3 +1,8 @@
+  <React.StrictMode>
+    <BrowserRouter>
+      <Rotas />
+    </BrowserRouter>
+  </React.StrictMode>
 import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import ModuleService from './CheckPermissions';
