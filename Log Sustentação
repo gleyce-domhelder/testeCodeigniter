@@ -9,3 +9,92 @@ CREATE TABLE LOG_SUSTENTACAO (
 );
 select * from LOG_SUSTENTACAO
 alter table LOG_SUSTENTACAO alter column AÇÃO VARCHAR(10)
+
+CREATE PROCEDURE sp_CriarTriggersLogParaTodasTabelas
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    DECLARE @TableName NVARCHAR(128);
+    DECLARE @SQLCreateTrigger NVARCHAR(MAX);
+    
+    -- Cursor para percorrer todas as tabelas do banco de dados
+    DECLARE tableCursor CURSOR FOR
+    SELECT TABLE_SCHEMA + '.' + TABLE_NAME AS TableName
+    FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_TYPE = 'BASE TABLE'
+      AND TABLE_NAME NOT IN ('LOG_SUSTENTACAO', 'sysdiagrams'); -- Excluir a tabela LOG_SUSTENTACAO e sysdiagrams
+    
+    OPEN tableCursor;
+    
+    FETCH NEXT FROM tableCursor INTO @TableName;
+    
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        -- Nome do trigger para INSERT
+        DECLARE @TriggerInsertName NVARCHAR(128) = 'trg_log_insert_' + REPLACE(REPLACE(@TableName, '.', '_'), '[', '_');
+        
+        -- Criação do trigger de INSERT
+        SET @SQLCreateTrigger = '
+        CREATE TRIGGER ' + @TriggerInsertName + '
+        ON ' + @TableName + '
+        AFTER INSERT
+        AS
+        BEGIN
+            INSERT INTO LOG_SUSTENTACAO (TABELA, AÇÃO, JSON_DADOS)
+            SELECT ''' + @TableName + ''', ''INSERT'', (SELECT * FROM inserted FOR JSON AUTO);
+        END;';
+        
+        EXEC sp_executesql @SQLCreateTrigger;
+        
+        -- Nome do trigger para UPDATE
+        DECLARE @TriggerUpdateName NVARCHAR(128) = 'trg_log_update_' + REPLACE(REPLACE(@TableName, '.', '_'), '[', '_');
+        
+        -- Criação do trigger de UPDATE
+        SET @SQLCreateTrigger = '
+        CREATE TRIGGER ' + @TriggerUpdateName + '
+        ON ' + @TableName + '
+        AFTER UPDATE
+        AS
+        BEGIN
+            DECLARE @json_before NVARCHAR(MAX);
+            DECLARE @json_after NVARCHAR(MAX);
+
+            -- Obtém JSON dos registros antes da atualização
+            SELECT @json_before = (SELECT * FROM deleted FOR JSON AUTO);
+
+            -- Obtém JSON dos registros depois da atualização
+            SELECT @json_after = (SELECT * FROM inserted FOR JSON AUTO);
+
+            -- Insere o JSON combinado na tabela de log
+            INSERT INTO LOG_SUSTENTACAO (TABELA, AÇÃO, JSON_DADOS)
+            VALUES (''' + @TableName + ''', ''UPDATE'', CONCAT(@json_before, @json_after));
+        END;';
+        
+        EXEC sp_executesql @SQLCreateTrigger;
+        
+        -- Nome do trigger para DELETE
+        DECLARE @TriggerDeleteName NVARCHAR(128) = 'trg_log_delete_' + REPLACE(REPLACE(@TableName, '.', '_'), '[', '_');
+        
+        -- Criação do trigger de DELETE
+        SET @SQLCreateTrigger = '
+        CREATE TRIGGER ' + @TriggerDeleteName + '
+        ON ' + @TableName + '
+        AFTER DELETE
+        AS
+        BEGIN
+            INSERT INTO LOG_SUSTENTACAO (TABELA, AÇÃO, JSON_DADOS)
+            SELECT ''' + @TableName + ''', ''DELETE'', (SELECT * FROM deleted FOR JSON AUTO);
+        END;';
+        
+        EXEC sp_executesql @SQLCreateTrigger;
+        
+        FETCH NEXT FROM tableCursor INTO @TableName;
+    END
+    
+    CLOSE tableCursor;
+    DEALLOCATE tableCursor;
+    
+END;
+
+EXEC sp_CriarTriggersLogParaTodasTabelas;
