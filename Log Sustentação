@@ -1,0 +1,11 @@
+CREATE TABLE LOG_SUSTENTACAO (
+    ID INT PRIMARY KEY IDENTITY(1,1),
+    AÇÃO CHAR(1) NOT NULL, -- I para insert, U para update, D para delete
+    USUARIO_ID INT, -- ID do usuário que realizou a operação, se aplicável
+    JSON_DADOS NVARCHAR(MAX), -- JSON com os dados antes e depois da operação
+    TABELA VARCHAR(50) NOT NULL, -- Nome da tabela onde a operação ocorreu
+    MODULO_ID INT, -- ID do módulo, se aplicável
+    CREATED_DT DATETIME DEFAULT GETDATE() -- Data e hora da operação
+);
+select * from LOG_SUSTENTACAO
+alter table LOG_SUSTENTACAO alter column AÇÃO VARCHAR(10)
