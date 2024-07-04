@@ -87,3 +87,115 @@ class Acesso extends BaseController
     }
 
 }
+
+
+
+//Tables 
+npm install jquery
+npm install datatables.net-bs5
+
+import React, { useRef } from 'react';
+import { initDataTable, destroyDataTable } from '../../utils/bootstrap-table'
+import Clientes from '../../json/Clientes.json';
+
+const ListarClientes = () => {
+  const tableRef = useRef(null);
+  React.useEffect(() => {
+    initDataTable(tableRef);
+    return () => {
+      destroyDataTable(tableRef);
+    };
+  }, []);
+
+  return (
+    <div className="container-fluid">
+      <div className="row">
+        <div className="col-xl-12">
+          <div className="card">
+            <div className="card-header">
+              <h4 className="card-title">Listagem de Clientes</h4>
+              <div>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+                  Cadastro de Novo Cliente
+                </button>
+              </div>
+            </div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table ref={tableRef} id="example" className="table table-striped table-bordered">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nome</th>
+                      <th>Email</th>
+                      <th>Profissão</th>
+                      <th>Telefone</th>
+                      <th>Status</th>
+                      <th>Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Clientes.map((cliente) => (
+                      <tr key={cliente.id}>
+                        <td>{cliente.id}</td>
+                        <td>{cliente.nome}</td>
+                        <td>{cliente.email}</td>
+                        <td>{cliente.profissao}</td>
+                        <td>{cliente.telefone}</td>
+                        <td>Status</td>
+                        <td>
+                          <button className="btn btn-primary me-1">Editar</button>
+                          <button className="btn btn-danger">Excluir</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ListarClientes;
+
+
+// Arquivo utils/datatables.js
+
+import $ from 'jquery';
+import 'datatables.net';
+import 'datatables.net-bs5/js/dataTables.bootstrap5.min.js';
+import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+import "../assets/css/style.css"
+export function initDataTable(tableRef) {
+    $(tableRef.current).DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        lengthMenu: [10, 25, 50, 100],
+        pagingType: 'simple_numbers',
+        dom: `
+          <'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>
+          <'row'<'col-sm-12'tr>>
+          <'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>
+        `,
+        language: {
+            lengthMenu: 'Show _MENU_ entries',
+            search: 'Search:',
+
+            paginate: {
+                previous: '<', 
+                next: '>', 
+            },
+            paginateButton: '%d', 
+
+        },
+    });
+}
+
+export function destroyDataTable(tableRef) {
+    $(tableRef.current).DataTable().destroy(true);
+}
