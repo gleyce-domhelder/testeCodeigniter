@@ -93,12 +93,19 @@ class Acesso extends BaseController
 //Tables 
 npm install jquery
 npm install datatables.net-bs5
-
 import React, { useRef } from 'react';
 import { initDataTable, destroyDataTable } from '../../utils/bootstrap-table'
 import Clientes from '../../json/Clientes.json';
+import { useState } from 'react';
+import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 
 const ListarClientes = () => {
+
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
   const tableRef = useRef(null);
   React.useEffect(() => {
     initDataTable(tableRef);
@@ -115,7 +122,7 @@ const ListarClientes = () => {
             <div className="card-header">
               <h4 className="card-title">Listagem de Clientes</h4>
               <div>
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+                <button onClick={handleShow} type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal1">
                   Cadastro de Novo Cliente
                 </button>
               </div>
@@ -153,15 +160,52 @@ const ListarClientes = () => {
                 </table>
               </div>
             </div>
+            <Modal show={show} onHide={handleClose}>
+              <Modal.Header closeButton>
+                <h1 class="modal-title fs-5" id="exampleModalLabel1">Invite Employee</h1>
+              </Modal.Header>
+              <Modal.Body>
+                <div class="row">
+                  <div class="col-xl-12">
+                    <label class="form-label">Email ID
+                      <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" placeholder="hello@gmail.com" />
+                    <label class="form-label mt-3">Employment date<span class="text-danger">*</span></label>
+                    <div class="react-datepicker-wrapper"><div class="react-datepicker__input-container ">
+                      <span role="alert" aria-live="polite" class="react-datepicker__aria-live"></span>
+                      <input type="text" class="form-control" value="07/04/2024" />
+                    </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-xl-6">
+                        <label class="form-label mt-3">First Name<span class="text-danger">*</span>
+                        </label><div class="input-group"><input type="text" class="form-control" placeholder="Name" />
+                        </div></div><div class="col-xl-6"><label class="form-label mt-3">Last Name
+                          <span class="text-danger">*</span></label><div class="input-group">
+                          <input type="text" class="form-control" placeholder="Surname" /></div>
+                      </div></div><div class="mt-3 invite"><label class="form-label">Send invitation email
+                        <span class="text-danger">*</span></label>
+                      <input type="email" class="form-control " placeholder="+ invite" /></div></div>
+                </div>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose}>
+                  Close
+                </Button>
+                <Button variant="primary" onClick={handleClose}>
+                  Save Changes
+                </Button>
+              </Modal.Footer>
+            </Modal>
+
           </div>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   );
 };
 
 export default ListarClientes;
-
 
 // Arquivo utils/datatables.js
 
