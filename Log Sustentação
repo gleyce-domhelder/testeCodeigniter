@@ -1,100 +1,178 @@
-CREATE TABLE LOG_SUSTENTACAO (
-    ID INT PRIMARY KEY IDENTITY(1,1),
-    AÇÃO CHAR(1) NOT NULL, -- I para insert, U para update, D para delete
-    USUARIO_ID INT, -- ID do usuário que realizou a operação, se aplicável
-    JSON_DADOS NVARCHAR(MAX), -- JSON com os dados antes e depois da operação
-    TABELA VARCHAR(50) NOT NULL, -- Nome da tabela onde a operação ocorreu
-    MODULO_ID INT, -- ID do módulo, se aplicável
-    CREATED_DT DATETIME DEFAULT GETDATE() -- Data e hora da operação
-);
-select * from LOG_SUSTENTACAO
-alter table LOG_SUSTENTACAO alter column AÇÃO VARCHAR(10)
+import React, { useEffect, useState } from "react";
+import { Route, Routes, useRoutes, Navigate, BrowserRouter, redirect } from "react-router-dom";
 
-CREATE PROCEDURE sp_CriarTriggersLogParaTodasTabelas
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    DECLARE @TableName NVARCHAR(128);
-    DECLARE @SQLCreateTrigger NVARCHAR(MAX);
-    
-    -- Cursor para percorrer todas as tabelas do banco de dados
-    DECLARE tableCursor CURSOR FOR
-    SELECT TABLE_SCHEMA + '.' + TABLE_NAME AS TableName
-    FROM INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_TYPE = 'BASE TABLE'
-      AND TABLE_NAME NOT IN ('LOG_SUSTENTACAO', 'sysdiagrams'); -- Excluir a tabela LOG_SUSTENTACAO e sysdiagrams
-    
-    OPEN tableCursor;
-    
-    FETCH NEXT FROM tableCursor INTO @TableName;
-    
-    WHILE @@FETCH_STATUS = 0
-    BEGIN
-        -- Nome do trigger para INSERT
-        DECLARE @TriggerInsertName NVARCHAR(128) = 'trg_log_insert_' + REPLACE(REPLACE(@TableName, '.', '_'), '[', '_');
-        
-        -- Criação do trigger de INSERT
-        SET @SQLCreateTrigger = '
-        CREATE TRIGGER ' + @TriggerInsertName + '
-        ON ' + @TableName + '
-        AFTER INSERT
-        AS
-        BEGIN
-            INSERT INTO LOG_SUSTENTACAO (TABELA, AÇÃO, JSON_DADOS)
-            SELECT ''' + @TableName + ''', ''INSERT'', (SELECT * FROM inserted FOR JSON AUTO);
-        END;';
-        
-        EXEC sp_executesql @SQLCreateTrigger;
-        
-        -- Nome do trigger para UPDATE
-        DECLARE @TriggerUpdateName NVARCHAR(128) = 'trg_log_update_' + REPLACE(REPLACE(@TableName, '.', '_'), '[', '_');
-        
-        -- Criação do trigger de UPDATE
-        SET @SQLCreateTrigger = '
-        CREATE TRIGGER ' + @TriggerUpdateName + '
-        ON ' + @TableName + '
-        AFTER UPDATE
-        AS
-        BEGIN
-            DECLARE @json_before NVARCHAR(MAX);
-            DECLARE @json_after NVARCHAR(MAX);
+import Dashboard from "../Pages/Dashboard";
+import Login from '../Pages/login';
 
-            -- Obtém JSON dos registros antes da atualização
-            SELECT @json_before = (SELECT * FROM deleted FOR JSON AUTO);
+//Services
+import styles from "../Services/styles";
+import libs from "../Services/styles";
+import scripts from "../Services/styles";
+import api from "../Services/api";
+import ProtectedRoute from "../Services/ProtectedRoute";
 
-            -- Obtém JSON dos registros depois da atualização
-            SELECT @json_after = (SELECT * FROM inserted FOR JSON AUTO);
 
-            -- Insere o JSON combinado na tabela de log
-            INSERT INTO LOG_SUSTENTACAO (TABELA, AÇÃO, JSON_DADOS)
-            VALUES (''' + @TableName + ''', ''UPDATE'', CONCAT(@json_before, @json_after));
-        END;';
-        
-        EXEC sp_executesql @SQLCreateTrigger;
-        
-        -- Nome do trigger para DELETE
-        DECLARE @TriggerDeleteName NVARCHAR(128) = 'trg_log_delete_' + REPLACE(REPLACE(@TableName, '.', '_'), '[', '_');
-        
-        -- Criação do trigger de DELETE
-        SET @SQLCreateTrigger = '
-        CREATE TRIGGER ' + @TriggerDeleteName + '
-        ON ' + @TableName + '
-        AFTER DELETE
-        AS
-        BEGIN
-            INSERT INTO LOG_SUSTENTACAO (TABELA, AÇÃO, JSON_DADOS)
-            SELECT ''' + @TableName + ''', ''DELETE'', (SELECT * FROM deleted FOR JSON AUTO);
-        END;';
-        
-        EXEC sp_executesql @SQLCreateTrigger;
-        
-        FETCH NEXT FROM tableCursor INTO @TableName;
-    END
-    
-    CLOSE tableCursor;
-    DEALLOCATE tableCursor;
-    
-END;
+//Dashboard
+import Relatorio from "../Components/Relatorios/Relatorio";
+import Timing from "../Components/Relatorios/Timing";
+import Grafico from "../Components/Relatorios/Grafico";
+// Listar
+import ListarUsuario from '../Pages/Usuário/ListarUsuario';
+import ListarCliente from '../Pages/Cliente/ListarCliente';
+import ListarPerfil from '../Pages/Perfil/ListarPerfil';
+import ListarUnidade from "../Pages/Unidade/ListarUnidade";
+import ListarCategoria from "../Pages/Categoria/ListarCategoria";
+//Cadastrar 
+import CadastroUsuario from '../Pages/Usuário/CadastrarUsuario';
+import CadastroCliente from "../Pages/Cliente/CadastrarCliente";
+import CadastroPerfil from "../Pages/Perfil/CadastrarPerfil";
+import CadastrarUnidade from "../Pages/Unidade/CadastrarUnidade";
+import CadastrarCategoria from "../Pages/Categoria/CadastrarCategoria";
+//Editar
+import EditarUsuario from '../Pages/Usuário/EditarUsuario';
+import Table from "../Pages/Table"
 
-EXEC sp_CriarTriggersLogParaTodasTabelas;
+import Module from "../Pages/Module";
+
+const addCssLink = (href) => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = href;
+    document.head.appendChild(link);
+}
+const addScripts = (src) => {
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.type = 'text/css';
+    script.src = src;
+    document.head.appendChild(script);
+}
+
+
+
+export const routes = [
+    {
+        path: "/",
+        to: "/login",
+        element: <Login />,
+        exact: true,
+        css: [styles.loginCss, libs.style],
+        script: [scripts.sweet_alert]
+    },
+    // {
+    //     path: "/dashboard",
+    //     id: 0,
+    //     element: <ProtectedRoute Item={Dashboard} api={api} id={1} />,
+    //     css: [libs.style],
+    //     script: [scripts.sweet_alert]
+    // },
+    // Telas Iniciais
+    {
+        path: '/usuarios',
+        id: 3,
+        element: <ProtectedRoute Item={ListarUsuario} api={api} id={3} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert, scripts.jquery_dataTables_script, scripts]
+    },
+    {
+        path: '/unidades',
+        id: 11,
+        element: <ProtectedRoute Item={ListarUnidade} api={api} id={11} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/categorias',
+        id: 7,
+        element: <ProtectedRoute Item={ListarCategoria} api={api} id={7} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/perfis',
+        id: 5,
+        element: <ProtectedRoute Item={ListarPerfil} api={api} id={5} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/clientes',
+        id: 1,
+        element: <ProtectedRoute Item={ListarCliente} api={api} id={1} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/cadastrar-usuario',
+        id: 4,
+        element: <ProtectedRoute Item={CadastroUsuario} api={api} id={4} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/cadastrar-cliente',
+        id: 2,
+        element: <ProtectedRoute Item={CadastroCliente} api={api} id={2} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/cadastrar-perfil',
+        id: 6,
+        element: <ProtectedRoute Item={CadastroPerfil} api={api} id={6} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/cadastrar-unidade',
+        id: 10,
+        element: <ProtectedRoute Item={CadastrarUnidade} api={api} id={10} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/cadastrar-categoria',
+        id: 8,
+        element: <ProtectedRoute Item={CadastrarCategoria} api={api} id={8} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/usuario/editar/:uuid',
+        id: 4,
+        element: <ProtectedRoute Item={EditarUsuario} api={api} id={4} />,
+        css: [libs.style],
+        script: [scripts.sweet_alert]
+    },
+    {
+        path: '/usuario/deletar',
+        id: 4
+    }
+
+];
+
+const Rotas = () => {
+    const element = useRoutes(routes);
+
+    useEffect(() => {
+        const currentRoute = routes.find((route) => route.path === window.location.pathname);
+        if (currentRoute) {
+            currentRoute.css.forEach((href) => addCssLink(href));
+            currentRoute.script.forEach((src) => addScripts(src));
+        }
+        return () => {
+            // Remove all CSS links when the component is unmounted
+            const links = document.head.querySelectorAll('link[rel="stylesheet"]');
+            links.forEach((link) => link.remove());
+
+            // Remove all scripts links when the component is unmounted
+            const scripts = document.head.querySelectorAll('script[type="text/javascript"]');
+            scripts.forEach((script) => script.remove());
+        };
+    }, [element]);
+
+    return element
+};
+
+export default Rotas;
