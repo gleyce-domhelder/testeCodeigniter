@@ -1,0 +1,276 @@
+npm install jquery
+npm install datatables.net-bs5
+npm install datatables.net
+
+import React, { useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from 'uuid';
+import TableData from '../assets/json/Table.json';
+// Arquivo utils/datatables.js
+import $ from 'jquery';
+import 'datatables.net';
+import 'datatables.net-bs5/js/dataTables.bootstrap5.min.js';
+import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+export function initDataTable(tableRef) {
+  $(tableRef.current).DataTable({
+    paging: true,
+    searching: true,
+    ordering: true,
+    lengthMenu: [10, 25, 50, 100],
+    pagingType: 'simple_numbers',
+    dom: `
+          <'row'<'col-sm-12 col-md-6'l><'col-sm-12 col-md-6'f>>
+          <'row'<'col-sm-12'tr>>
+          <'row'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>
+        `,
+    language: {
+      emptyTable: 'Nenhum dado disponível na tabela',
+      info: 'Mostrando _START_ até _END_ de _TOTAL_ registros',
+      infoEmpty: 'Mostrando 0 até 0 de 0 registros',
+      infoFiltered: '(filtrado de _MAX_ registros no total)',
+      infoPostFix: '',
+      lengthMenu: 'Mostrar _MENU_ registros por página',
+      loadingRecords: 'Carregando...',
+      processing: 'Processando...',
+      search: 'Buscar:',
+      zeroRecords: 'Nenhum registro encontrado',
+      lengthMenu:
+        'Mostrar <select class="form-select">' +
+        '<option value="10">10</option>' +
+        '<option value="25">25</option>' +
+        '<option value="50">50</option>' +
+        '<option value="-1">Todos</option>' +
+        "</select> itens na página",
+      search: 'Pesquisar:',
+      aria: {
+        sortAscending: ': ativar para classificar a coluna em ordem crescente',
+        sortDescending: ': ativar para classificar a coluna em ordem decrescente'
+      },
+      paginate: {
+        previous: '<',
+        next: '>',
+      },
+      paginateButton: '%d',
+
+    },
+  });
+}
+
+export function destroyDataTable(tableRef) {
+  $(tableRef.current).DataTable().destroy(true);
+}
+
+const DataTableExample = () => {
+  const [dados, setDados] = useState([]);
+  const [contadorAtivo, setContadorAtivo] = useState(false);
+  const intervalRef = useRef(null);
+  const tempoInicialRef = useRef(null);
+
+  const [uuid, setUuid] = useState('');
+  const [tempoSelecionado, setTempoSelecionado] = useState('');
+  const tableRef = useRef(null);
+  React.useEffect(() => {
+    initDataTable(tableRef);
+    return () => {
+      destroyDataTable(tableRef);
+    };
+  }, []);
+
+  const handleStart = () => {
+    if (!tempoSelecionado) {
+      alert('Selecione um tempo antes de iniciar.');
+      return;
+    }
+    const novoUuid = uuidv4();
+    setUuid(novoUuid);
+    // Converte o tempo selecionado em minutos e segundos para milissegundos
+    const [minutos, segundos] = tempoSelecionado.split(':').map(part => parseInt(part));
+    const tempoSelecionadoEmMS = (minutos * 60 + segundos) * 1000;
+
+    tempoInicialRef.current = tempoSelecionadoEmMS;
+
+    setContadorAtivo(true);
+
+    intervalRef.current = setInterval(() => {
+      // Atualiza o tempo decorrido
+
+      // Simula a requisição para obter dados
+      const novoDado = {
+        UUID: '123548',
+        OrigemDatabase: 'Database X',
+        Recurso: 'Recurso Y',
+        HTTPCode: 200,
+        Tempo: new Date().toLocaleTimeString()
+      };
+
+      // Atualiza o estado dos dados para incluir o novo dado
+      setDados((prevDados) => [novoDado, ...prevDados]);
+    }, tempoSelecionadoEmMS); // 30 segundos
+  };
+
+
+  const handleStop = () => {
+    clearInterval(intervalRef.current);
+    setContadorAtivo(false);
+    // Não limpa os dados, apenas para as requisições
+  };
+
+  const handleDownload = () => {
+    const csvData = [
+      ['UUID', 'Origem Database', 'Recurso', 'HTTP Code', 'Tempo']
+    ];
+
+    dados.forEach((row) => {
+      const rowData = [
+        row.UUID,
+        row.OrigemDatabase,
+        row.Recurso,
+        row.HTTPCode,
+        row.Tempo
+      ];
+      csvData.push(rowData);
+    });
+
+    const csvContent = csvData.map((row) => row.join(";")).join("\n");
+    const csvBlob = new Blob([csvContent], { type: "text/csv" });
+    const csvUrl = URL.createObjectURL(csvBlob);
+
+    const a = document.createElement("a");
+    a.href = csvUrl;
+    a.download = uuid + ".csv";
+    a.click();
+
+    URL.revokeObjectURL(csvUrl);
+    setDados([]);
+  };
+
+  const handleHorarioChange = (event) => {
+    setTempoSelecionado(event.target.value);
+  };
+
+  // Formata o tempo decorrido em horas, minutos e segundos
+
+
+
+  return (
+    <div id="main-wrapper">
+      <div class="content-body">
+        <div class="page-titles">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item ">
+              <a href="">Bootstrap</a>
+            </li>
+            <li class="breadcrumb-item active">
+              <a href="">Datatable</a>
+            </li>
+          </ol>
+        </div>
+        <div class="container-fluid">
+          <div class="element-area">
+            <div class="demo-view">
+              <div class="container-fluid pt-0 ps-0 pe-lg-4 pe-0">
+                <div class="row">
+                  <div class="col-xl-12">
+                    <div class="card dz-card" id="accordion-one">
+                      <div class="card-header flex-wrap">
+                        <div className="container mt-4">
+                          <h2>DataTable com Controle de Tempo em React</h2>
+
+                          <label for="horario">Horário:</label><br />
+                          <input
+                            type="time"
+                            id="horario"
+                            name="horario"
+                            value={tempoSelecionado}
+                            onChange={handleHorarioChange}
+                          />
+                          {contadorAtivo && (
+                            <div className="row mt-3">
+                              <div className="col-md-6">
+                                <p>Tempo selecionado: {tempoSelecionado}</p>
+                              </div>
+                            </div>
+                          )}
+                          <div className="table-responsive">
+                            <table
+                              ref={tableRef}
+                              className="table"
+                              style={{ width: "100%", border: "none" }}
+                            >
+                              <thead>
+                                <tr>
+                                  <th>UUID</th>
+                                  <th>Origem Database</th>
+                                  <th>Recurso</th>
+                                  <th>HTTP Code</th>
+                                  <th>Tempo</th>{" "}
+                                  {/* Mudança de 'Data' para 'Tempo' */}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {TableData.map((item, index) => (
+                                  <tr key={index}>
+                                    <td>{item.UUID}</td>
+                                    <td>{item.OrigemDatabase}</td>
+                                    <td>{item.Recurso}</td>
+                                    <td>{item.HTTPCode}</td>
+                                    <td>{item.Tempo}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>{" "}
+                          <div class="mt-3 text-center">
+                            <button
+                              class="btn btn-primary m-2"
+                              onClick={handleStart}
+                            >
+                              <i class="fas fa-play"></i> Start
+                            </button>
+
+                            <button
+                              class="btn btn-danger m-2"
+                              onClick={handleStop}
+                            >
+                              <i class="fas fa-stop"></i> Stop
+                            </button>
+
+                            <button
+                              class="btn btn-success m-2"
+                              onClick={() => {
+                                const columnTitles = [
+                                  "UUID",
+                                  "Origem Database",
+                                  "Recurso",
+                                  "HTTP Code",
+                                  "Tempo",
+                                ];
+                                const data = $(tableRef.current)
+                                  .DataTable()
+                                  .rows()
+                                  .data();
+                                handleDownload(columnTitles, data);
+                              }}
+                            >
+                              <i class="fas fa-download"></i> Download
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DataTableExample;
+
+
+
+
+
